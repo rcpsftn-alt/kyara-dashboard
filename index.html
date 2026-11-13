@@ -40,6 +40,20 @@
   .bar-row .fill { height:100%; border-radius:6px; background:linear-gradient(90deg, #ef4444, #f97316); min-width:2px; }
   .bar-row .val { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
   .bar-row.me .who { color:#c4b5fd; font-weight:600; }
+  .tc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
+  .tc-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+  .tc-row .tc { flex:0 0 130px; }
+  .tc { display:block; background:#0e1015; border:2px solid #374151; border-radius:10px; overflow:hidden; color:inherit; text-decoration:none; transition:transform .12s; }
+  .tc:hover { transform:translateY(-2px); }
+  .tc img, .tc .ph { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:#1f2430; }
+  .tc .info { padding:6px 8px; font-size:12px; }
+  .tc .nm { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tc .pr { color:#fbbf24; font-variant-numeric:tabular-nums; }
+  .tc .ow { color:var(--mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pl { padding:10px 0; border-top:1px solid var(--line); }
+  .pl:first-child { border-top:0; padding-top:0; }
+  .pl-h { margin-bottom:8px; }
+  .pl.me .pl-h b { color:#c4b5fd; }
   #error { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); color:#fca5a5; border-radius:10px; padding:10px 14px; margin-bottom:16px; }
 </style>
 </head>
@@ -70,6 +84,17 @@
   <div class="panel">
     <h2>Mythiques par joueur</h2>
     <div id="mythChart"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cartes les plus chères tirées</h2>
+    <div id="topGlobal" class="tc-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Meilleures cartes de chaque joueur</h2>
+    <div id="topByPlayer"></div>
+    <div class="muted" style="font-size:12px;margin-top:8px">Cote = prix médian au marché sur 7 jours, au moment du tirage. Clic sur une carte = sa fiche sur kyara.games.</div>
   </div>
 
   <div class="panel">

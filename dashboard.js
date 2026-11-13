@@ -31,7 +31,7 @@ async function load() {
   try {
     const since = dayKey(Date.now() - 29 * 864e5);
     const [p, d] = await Promise.all([
-      get('players?select=id,pseudo,kyara_id,opens,nouvelles,doublons,c,u,r,e,l,m,since_mythic,updated_at&order=updated_at.desc&limit=2000'),
+      get('players?select=id,pseudo,kyara_id,opens,nouvelles,doublons,c,u,r,e,l,m,since_mythic,top_cards,updated_at&order=updated_at.desc&limit=2000'),
       get('player_days?select=player_id,day,opens,l,m&day=gte.' + since + '&limit=50000'),
     ]);
     // Un même compte Kyara peut avoir plusieurs lignes (extension réinstallée) :
@@ -261,7 +261,67 @@ function renderMythChart() {
   });
 }
 
-function render() { renderCards(); renderChart(); renderMythChart(); renderTable(); }
+// ---------------------------------------------------------------- cartes les plus chères
+const RARITY_COLOR = { C: '#9ca3af', U: '#22c55e', R: '#3b82f6', E: '#a855f7', L: '#facc15', M: '#ef4444' };
+const SAFE_IMG = /^https:\/\/s4\.anilist\.co\/[A-Za-z0-9/_.-]+$/;
+
+function cardEl(c, owner) {
+  const el = document.createElement('a');
+  el.className = 'tc';
+  el.href = 'https://kyara.games/wiki/' + (Number(c.id) || 0);
+  el.target = '_blank';
+  el.rel = 'noopener';
+  el.style.borderColor = RARITY_COLOR[c.rarity] || '#374151';
+  if (c.image && SAFE_IMG.test(c.image)) {
+    const img = document.createElement('img');
+    img.src = c.image; img.alt = ''; img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
+    el.appendChild(img);
+  } else {
+    const ph = document.createElement('div'); ph.className = 'ph'; el.appendChild(ph);
+  }
+  const info = document.createElement('div'); info.className = 'info';
+  const name = document.createElement('div'); name.className = 'nm'; name.textContent = c.name || '?';
+  const price = document.createElement('div'); price.className = 'pr';
+  const r = document.createElement('span'); r.textContent = c.rarity || '?'; r.style.color = RARITY_COLOR[c.rarity] || '#9ca3af';
+  price.append(r, document.createTextNode(' · ' + (c.price ? fmt(c.price) + ' ◆' : 'cote inconnue')));
+  info.append(name, price);
+  if (owner) { const o = document.createElement('div'); o.className = 'ow'; o.textContent = owner; info.appendChild(o); }
+  el.appendChild(info);
+  el.title = (c.name || '') + (c.series ? ' — ' + c.series : '') + (c.price ? ' · cote ' + c.price + ' ◆' : '');
+  return el;
+}
+
+function renderTopCards() {
+  // Top général
+  const all = [];
+  players.forEach(p => (Array.isArray(p.top_cards) ? p.top_cards : []).forEach(c => all.push({ c, p })));
+  all.sort((a, b) => (b.c.price || 0) - (a.c.price || 0));
+  const g = $('topGlobal'); g.innerHTML = '';
+  const root = $('topByPlayer'); root.innerHTML = '';
+  all.slice(0, 12).forEach(({ c, p }) => g.appendChild(cardEl(c, p.pseudo)));
+  if (!all.length) { g.className = 'muted'; g.textContent = 'Aucune carte enregistrée pour l\'instant (il faut l\'extension v0.10).'; return; }
+  g.className = 'tc-grid';
+
+  // Par joueur
+  players
+    .filter(p => Array.isArray(p.top_cards) && p.top_cards.length)
+    .sort((a, b) => (b.top_cards[0].price || 0) - (a.top_cards[0].price || 0))
+    .forEach(p => {
+      const box = document.createElement('div');
+      box.className = 'pl' + (p.id === myId ? ' me' : '');
+      const h = document.createElement('div'); h.className = 'pl-h';
+      const n = document.createElement('b'); n.textContent = p.pseudo;
+      const tot = p.top_cards.reduce((a, c) => a + (c.price || 0), 0);
+      const s = document.createElement('span'); s.className = 'muted'; s.textContent = ' · top ' + p.top_cards.length + ' : ' + fmt(tot) + ' ◆';
+      h.append(n, s);
+      const row = document.createElement('div'); row.className = 'tc-row';
+      p.top_cards.forEach(c => row.appendChild(cardEl(c)));
+      box.append(h, row);
+      root.appendChild(box);
+    });
+}
+
+function render() { renderCards(); renderChart(); renderMythChart(); renderTopCards(); renderTable(); }
 
 $('refresh').onclick = load;
 // Ta ligne : l'extension ouvre le dashboard avec #me=<identifiant> dans l'adresse.
