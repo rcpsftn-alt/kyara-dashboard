@@ -227,7 +227,41 @@ function renderTable() {
   table.appendChild(tbody);
 }
 
-function render() { renderCards(); renderChart(); renderTable(); }
+// ---------------------------------------------------------------- mythiques par joueur
+function renderMythChart() {
+  const root = $('mythChart');
+  root.innerHTML = '';
+  const list = players.filter(p => p.m > 0).sort((a, b) => b.m - a.m || a.opens - b.opens).slice(0, 25);
+  if (!list.length) {
+    const d = document.createElement('div');
+    d.className = 'muted';
+    d.textContent = 'Personne n\'a encore tiré de Mythique.';
+    root.appendChild(d);
+    return;
+  }
+  const max = list[0].m;
+  list.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'bar-row' + (p.id === myId ? ' me' : '');
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = p.pseudo;
+    who.title = p.pseudo + ' : ' + p.m + ' Mythique(s) en ' + fmt(p.opens) + ' boosters';
+    const track = document.createElement('div');
+    track.className = 'track';
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    fill.style.width = (p.m / max * 100) + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div');
+    val.className = 'val';
+    val.textContent = p.m;
+    row.append(who, track, val);
+    root.appendChild(row);
+  });
+}
+
+function render() { renderCards(); renderChart(); renderMythChart(); renderTable(); }
 
 $('refresh').onclick = load;
 // Ta ligne : l'extension ouvre le dashboard avec #me=<identifiant> dans l'adresse.
