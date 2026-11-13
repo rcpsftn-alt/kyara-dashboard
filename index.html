@@ -40,6 +40,9 @@
   .bar-row .fill { height:100%; border-radius:6px; background:linear-gradient(90deg, #ef4444, #f97316); min-width:2px; }
   .bar-row .val { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
   .bar-row.me .who { color:#c4b5fd; font-weight:600; }
+  .bar-row.gold { grid-template-columns:28px minmax(90px, 160px) 1fr 90px; }
+  .bar-row.gold .fill { background:linear-gradient(90deg, #f59e0b, #fde047); }
+  .bar-row .rk { color:var(--mute); text-align:right; font-variant-numeric:tabular-nums; }
   .tc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
   .tc-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
   .tc-row .tc { flex:0 0 130px; }
@@ -87,6 +90,12 @@
   </div>
 
   <div class="panel">
+    <h2>Classement par valeur des cartes</h2>
+    <div id="valueChart"></div>
+    <div class="muted" style="font-size:12px;margin-top:8px">Valeur = somme des cotes des 10 cartes les plus chères tirées par le joueur.</div>
+  </div>
+
+  <div class="panel">
     <h2>Cartes les plus chères tirées</h2>
     <div id="topGlobal" class="tc-grid"></div>
   </div>
@@ -104,7 +113,7 @@
   </div>
 </main>
 <!-- Changer ?v= à chaque mise à jour pour éviter l'ancienne version en cache -->
-<script src="config.js?v=10"></script>
-<script src="dashboard.js?v=10"></script>
+<script src="config.js?v=11"></script>
+<script src="dashboard.js?v=11"></script>
 </body>
 </html>

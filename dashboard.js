@@ -134,6 +134,7 @@ const COLS = [
   { key: 'c', label: 'C', color: RAR.c[1] }, { key: 'u', label: 'U', color: RAR.u[1] },
   { key: 'r', label: 'R', color: RAR.r[1] }, { key: 'e', label: 'E', color: RAR.e[1] },
   { key: 'l', label: 'L', color: RAR.l[1] }, { key: 'm', label: 'M', color: RAR.m[1] },
+  { key: 'value',   label: 'Valeur cartes' },
   { key: 'rateM',   label: '1 M tous les' },
   { key: 'since_mythic', label: 'Sans M depuis' },
   { key: 'nouvelles', label: 'Nouvelles' },
@@ -146,6 +147,7 @@ function rows() {
   days.forEach(d => { if (d.day === today) todayBy[d.player_id] = d.opens; });
   return players.map(p => Object.assign({}, p, {
     today: todayBy[p.id] || 0,
+    value: cardsValue(p),
     rateM: p.m ? p.opens / p.m : Infinity,
   }));
 }
@@ -211,6 +213,7 @@ function renderTable() {
     cell(fmt(p.opens));
     cell(fmt(p.today));
     ['c', 'u', 'r', 'e', 'l', 'm'].forEach(k => cell(fmt(p[k]), '', p[k] ? RAR[k][1] : '#4b5563'));
+    cell(p.value ? fmt(p.value) + ' ◆' : '—', '', p.value ? '#fbbf24' : '');
     cell(isFinite(p.rateM) ? fmt(Math.round(p.rateM)) + ' boosters' : '—');
     cell(fmt(p.since_mythic) + ' boosters');
     cell(fmt(p.nouvelles));
@@ -321,7 +324,38 @@ function renderTopCards() {
     });
 }
 
-function render() { renderCards(); renderChart(); renderMythChart(); renderTopCards(); renderTable(); }
+// ---------------------------------------------------------------- valeur totale des cartes
+const cardsValue = p => (Array.isArray(p.top_cards) ? p.top_cards : []).reduce((a, c) => a + (Number(c.price) || 0), 0);
+
+function renderValueChart() {
+  const root = $('valueChart');
+  root.innerHTML = '';
+  const list = players.map(p => ({ p, v: cardsValue(p) })).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 25);
+  if (!list.length) {
+    const d = document.createElement('div');
+    d.className = 'muted';
+    d.textContent = 'Aucune carte avec une cote pour l\'instant (il faut l\'extension v0.10 ou plus).';
+    root.appendChild(d);
+    return;
+  }
+  const max = list[0].v;
+  list.forEach(({ p, v }, i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row gold' + (p.id === myId ? ' me' : '');
+    const rk = document.createElement('div'); rk.className = 'rk'; rk.textContent = (i + 1) + '.';
+    const who = document.createElement('div'); who.className = 'who'; who.textContent = p.pseudo;
+    const best = p.top_cards[0];
+    who.title = p.pseudo + ' · meilleure carte : ' + (best ? best.name + ' (' + fmt(best.price) + ' ◆)' : '—');
+    const track = document.createElement('div'); track.className = 'track';
+    const fill = document.createElement('div'); fill.className = 'fill'; fill.style.width = (v / max * 100) + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div'); val.className = 'val'; val.textContent = fmt(v) + ' ◆';
+    row.append(rk, who, track, val);
+    root.appendChild(row);
+  });
+}
+
+function render() { renderCards(); renderChart(); renderMythChart(); renderValueChart(); renderTopCards(); renderTable(); }
 
 $('refresh').onclick = load;
 // Ta ligne : l'extension ouvre le dashboard avec #me=<identifiant> dans l'adresse.
