@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kyara Dashboard</title>
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg:#0e1015; --card:#171a22; --line:#262b36; --txt:#e5e7eb; --mute:#9ca3af; --accent:#7c3aed; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:20px 16px 40px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  h1 { margin:0; font-size:22px; }
+  h2 { margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
+  .muted { color:var(--mute); }
+  button { background:var(--card); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  button:hover { border-color:#4b5563; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .card .v { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .card .k { color:var(--mute); font-size:12px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px; }
+  #chart svg { width:100%; height:auto; display:block; }
+  .legend { display:flex; gap:14px; font-size:12px; color:var(--mute); margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  .tablewrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  th, td { padding:7px 8px; text-align:right; border-bottom:1px solid var(--line); }
+  th { color:var(--mute); font-weight:600; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--card); }
+  th:hover { color:var(--txt); }
+  th.sorted { color:var(--txt); }
+  td.l, th.l { text-align:left; }
+  tr.me td { background:rgba(124,58,237,.14); }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:#4b5563; }
+  .dot.on { background:#22c55e; }
+  #error { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); color:#fca5a5; border-radius:10px; padding:10px 14px; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>📊 Kyara · Dashboard des joueurs</h1>
+      <div class="muted" id="updated">Chargement…</div>
+    </div>
+    <button id="refresh">↻ Actualiser</button>
+  </header>
+
+  <div id="error" hidden></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h2>30 derniers jours (tous les joueurs)</h2>
+    <div id="chart"></div>
+    <div class="legend">
+      <span><i style="background:#7c3aed"></i>Boosters ouverts</span>
+      <span><i style="background:#facc15"></i>Légendaires</span>
+      <span><i style="background:#ef4444"></i>Mythiques</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Classement</h2>
+    <div class="tablewrap"><table id="table"></table></div>
+    <div class="muted" style="font-size:12px;margin-top:8px">Clique sur un titre de colonne pour trier. Ta ligne est surlignée en violet. ● vert = actif dans les 15 dernières minutes.</div>
+  </div>
+</main>
+<script src="config.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
