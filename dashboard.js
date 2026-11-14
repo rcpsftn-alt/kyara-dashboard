@@ -31,7 +31,7 @@ async function load() {
   try {
     const since = dayKey(Date.now() - 29 * 864e5);
     const [p, d] = await Promise.all([
-      get('players?select=id,pseudo,kyara_id,opens,nouvelles,doublons,c,u,r,e,l,m,since_mythic,top_cards,updated_at&order=updated_at.desc&limit=2000'),
+      get('players?select=*&order=updated_at.desc&limit=2000'),
       get('player_days?select=player_id,day,opens,l,m&day=gte.' + since + '&limit=50000'),
     ]);
     // Un même compte Kyara peut avoir plusieurs lignes (extension réinstallée) :
@@ -314,8 +314,9 @@ function renderTopCards() {
       box.className = 'pl' + (p.id === myId ? ' me' : '');
       const h = document.createElement('div'); h.className = 'pl-h';
       const n = document.createElement('b'); n.textContent = p.pseudo;
-      const tot = p.top_cards.reduce((a, c) => a + (c.price || 0), 0);
-      const s = document.createElement('span'); s.className = 'muted'; s.textContent = ' · top ' + p.top_cards.length + ' : ' + fmt(tot) + ' ◆';
+      const s = document.createElement('span'); s.className = 'muted';
+      s.textContent = ' · valeur totale : ' + fmt(cardsValue(p)) + ' ◆' +
+        (p.cards_count ? ' (' + fmt(p.cards_count) + ' cartes)' : '') + ' · ses ' + p.top_cards.length + ' meilleures :';
       h.append(n, s);
       const row = document.createElement('div'); row.className = 'tc-row';
       p.top_cards.forEach(c => row.appendChild(cardEl(c)));
@@ -325,7 +326,10 @@ function renderTopCards() {
 }
 
 // ---------------------------------------------------------------- valeur totale des cartes
-const cardsValue = p => (Array.isArray(p.top_cards) ? p.top_cards : []).reduce((a, c) => a + (Number(c.price) || 0), 0);
+// Valeur = TOUTES les cartes tirées (cards_value, extension v0.12+).
+// Pour un joueur encore en ancienne version : somme de ses 10 meilleures cartes.
+const top10Value = p => (Array.isArray(p.top_cards) ? p.top_cards : []).reduce((a, c) => a + (Number(c.price) || 0), 0);
+const cardsValue = p => Math.max(Number(p.cards_value) || 0, top10Value(p));
 
 function renderValueChart() {
   const root = $('valueChart');
@@ -344,8 +348,9 @@ function renderValueChart() {
     row.className = 'bar-row gold' + (p.id === myId ? ' me' : '');
     const rk = document.createElement('div'); rk.className = 'rk'; rk.textContent = (i + 1) + '.';
     const who = document.createElement('div'); who.className = 'who'; who.textContent = p.pseudo;
-    const best = p.top_cards[0];
-    who.title = p.pseudo + ' · meilleure carte : ' + (best ? best.name + ' (' + fmt(best.price) + ' ◆)' : '—');
+    const best = (p.top_cards || [])[0];
+    who.title = p.pseudo + ' · ' + (p.cards_count ? fmt(p.cards_count) + ' cartes cotées · ' : '') +
+      'meilleure carte : ' + (best ? best.name + ' (' + fmt(best.price) + ' ◆)' : '—');
     const track = document.createElement('div'); track.className = 'track';
     const fill = document.createElement('div'); fill.className = 'fill'; fill.style.width = (v / max * 100) + '%';
     track.appendChild(fill);
